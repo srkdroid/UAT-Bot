@@ -29,7 +29,21 @@ RULES:
 - If project context (FDD/test scripts) is provided, generate questions SPECIFIC to that project's configuration. Otherwise, use general D365FO knowledge.
 - Include an explanation for each correct answer that teaches the concept.
 - Difficulty: accessible to a finance user who has completed training but hasn't yet used the system.
-- Respond ONLY with valid JSON matching the specified schema.`;
+- Respond ONLY with valid JSON matching exactly this array schema:
+[
+  {
+    "id": 1,
+    "question": "string",
+    "options": {
+      "A": "string",
+      "B": "string",
+      "C": "string",
+      "D": "string"
+    },
+    "correctAnswer": "A",
+    "explanation": "string"
+  }
+]`;
 
 export const TRIAGE_SYSTEM_PROMPT = `You are a D365FO UAT defect triage specialist. Analyse the defect description and classify it into exactly one category.
 
@@ -43,7 +57,14 @@ RULES:
 - Lean toward "Training Issue" when ambiguous — this reflects real-world UAT reality where 60%+ of tickets are training gaps.
 - If project context is provided, use it to determine what's in scope.
 - Be specific in your reasoning — reference the exact D365FO behaviour that supports your classification.
-- Respond ONLY with valid JSON matching the specified schema.`;
+- Respond ONLY with valid JSON matching exactly this object schema:
+{
+  "classification": "Training Issue" | "Configuration Issue" | "Genuine Defect" | "Out of Scope",
+  "confidence": "High" | "Medium" | "Low",
+  "reasoning": "string",
+  "recommended_action": "string",
+  "suggested_next_steps": ["string", "string"]
+}`;
 
 export function buildCoachSystemPrompt(context: string[]): string {
   let prompt = COACH_SYSTEM_PROMPT;

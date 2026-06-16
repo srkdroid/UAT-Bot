@@ -51,13 +51,18 @@ export function DefectTriage() {
 
   const copyToClipboard = () => {
     if (!result) return;
+    
+    const stepsText = Array.isArray(result.suggested_next_steps) 
+      ? result.suggested_next_steps.map(s => `- ${s}`).join('\n')
+      : '- ' + result.suggested_next_steps;
+
     const text = `
 Classification: ${result.classification}
 Confidence: ${result.confidence}
 Reasoning: ${result.reasoning}
 Recommended Action: ${result.recommended_action}
 Suggested Next Steps:
-${result.suggested_next_steps.map(s => `- ${s}`).join('\n')}
+${stepsText}
     `.trim();
     
     navigator.clipboard.writeText(text);
@@ -175,9 +180,13 @@ ${result.suggested_next_steps.map(s => `- ${s}`).join('\n')}
             <div className={styles.resultSection}>
               <h4>Suggested Next Steps</h4>
               <ul>
-                {result.suggested_next_steps.map((step, i) => (
-                  <li key={i}>{step}</li>
-                ))}
+                {Array.isArray(result.suggested_next_steps) ? (
+                  result.suggested_next_steps.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))
+                ) : (
+                  <li>{result.suggested_next_steps}</li>
+                )}
               </ul>
             </div>
 
