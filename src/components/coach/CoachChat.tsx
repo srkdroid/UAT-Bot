@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { MessageBubble } from './MessageBubble';
@@ -32,8 +34,8 @@ export function CoachChat() {
     setIsStreaming(true);
     setStreamingContent('');
     
-    const userMsgId = Date.now().toString();
-    const modelMsgId = (Date.now() + 1).toString();
+    const userMsgId = crypto.randomUUID();
+    const modelMsgId = crypto.randomUUID();
     setStreamingId(modelMsgId);
 
     const userMessage: Message = {
@@ -146,7 +148,45 @@ export function CoachChat() {
             {error && (
               <div className={styles.errorBanner}>
                 ⚠️ {error}
-                <button onClick={() => handleSend(chatHistory[chatHistory.length - 1]?.content || '')}>
+                <button onClick={() => {
+                  setError(null);
+                  // Re-run with existing history (last user message is already in chatHistory)
+                  const contextTexts = uploadedContext.map(doc => `[${doc.fileName}]:\n${doc.content}`);
+                  const apiHistory = chatHistory.map(msg => ({
+                    role: msg.role,
+                    parts: [{ text: msg.content }]
+                  }));
+                  setIsStreaming(true);
+                  setStreamingContent('');
+                  const retryModelId = crypto.randomUUID();
+                  setStreamingId(retryModelId);
+
+                  fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: apiHistory, context: contextTexts }),
+                  }).then(async response => {
+                    if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+                    if (!response.body) throw new Error('No response body');
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let fullText = '';
+                    while (true) {
+                      const { done, value } = await reader.read();
+                      if (done) break;
+                      fullText += decoder.decode(value, { stream: true });
+                      setStreamingContent(fullText);
+                    }
+                    addMessage({ id: retryModelId, role: 'model', content: fullText, timestamp: Date.now() });
+                  }).catch(err => {
+                    console.error(err);
+                    setError('Failed to get response. Please try again.');
+                  }).finally(() => {
+                    setIsStreaming(false);
+                    setStreamingId(null);
+                    setStreamingContent('');
+                  });
+                }}>
                   Retry
                 </button>
               </div>

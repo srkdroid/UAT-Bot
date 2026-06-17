@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import type { AppMode } from '@/lib/types';
 import styles from './Sidebar.module.css';
@@ -6,6 +8,16 @@ import styles from './Sidebar.module.css';
 export function Sidebar() {
   const { activeMode, setActiveMode, uploadedContext, clearChat } = useApp();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileOpen) {
+        setIsMobileOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isMobileOpen]);
 
   const navItems: { mode: AppMode; label: string; icon: string }[] = [
     { mode: 'coach', label: 'Coach', icon: '💬' },
@@ -37,7 +49,7 @@ export function Sidebar() {
           <h1 className={styles.title}>D365 UAT Coach</h1>
         </div>
 
-        <nav className={styles.nav}>
+        <nav className={styles.nav} role="navigation" aria-label="Main navigation">
           {navItems.map((item) => (
             <button
               key={item.mode}
@@ -72,7 +84,7 @@ export function Sidebar() {
 
       {/* Overlay for mobile */}
       {isMobileOpen && (
-        <div className={styles.overlay} onClick={() => setIsMobileOpen(false)} />
+        <div className={styles.overlay} role="button" aria-label="Close menu" onClick={() => setIsMobileOpen(false)} />
       )}
     </>
   );

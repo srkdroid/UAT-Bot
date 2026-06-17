@@ -44,7 +44,29 @@ export async function POST(request: Request) {
       jsonResult = JSON.parse(cleaned);
     }
 
-    return new Response(JSON.stringify(jsonResult.questions ? jsonResult.questions : jsonResult), {
+    // Extract questions array
+    const questions = jsonResult.questions ? jsonResult.questions : jsonResult;
+
+    // Basic validation
+    if (!Array.isArray(questions) || questions.length === 0) {
+      throw new Error('AI returned invalid quiz format');
+    }
+
+    // Validate each question has required fields
+    const validatedQuestions = questions.map((q: any, idx: number) => ({
+      id: q.id ?? idx + 1,
+      question: q.question || `Question ${idx + 1}`,
+      options: {
+        A: q.options?.A || '',
+        B: q.options?.B || '',
+        C: q.options?.C || '',
+        D: q.options?.D || '',
+      },
+      correctAnswer: ['A', 'B', 'C', 'D'].includes(q.correctAnswer) ? q.correctAnswer : 'A',
+      explanation: q.explanation || 'No explanation provided.',
+    }));
+
+    return new Response(JSON.stringify(validatedQuestions), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

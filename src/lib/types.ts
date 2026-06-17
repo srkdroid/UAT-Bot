@@ -28,7 +28,7 @@ export interface QuizQuestion {
 
 export interface QuizState {
   questions: QuizQuestion[];
-  answers: Record<number, string>;
+  answers: Record<number, 'A' | 'B' | 'C' | 'D'>;
   currentIndex: number;
   isComplete: boolean;
   isLoading: boolean;
@@ -41,7 +41,7 @@ export interface QuizResult {
   score: number;
   totalQuestions: number;
   questions: QuizQuestion[];
-  answers: Record<number, string>;
+  answers: Record<number, 'A' | 'B' | 'C' | 'D'>;
   timestamp: number;
   knowledgeGaps: string[];
 }

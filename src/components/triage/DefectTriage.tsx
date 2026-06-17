@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { D365_MODULES } from '@/lib/docsContent';
@@ -13,6 +15,7 @@ export function DefectTriage() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<TriageResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,8 +68,13 @@ Suggested Next Steps:
 ${stepsText}
     `.trim();
     
-    navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      // Fallback for non-HTTPS
+      setCopied(false);
+    });
   };
 
   const getBadgeClass = (classification: string) => {
@@ -163,7 +171,7 @@ ${stepsText}
                 </span>
               </div>
               <button className="btn-secondary" onClick={copyToClipboard}>
-                📋 Copy
+                {copied ? '✅ Copied!' : '📋 Copy'}
               </button>
             </div>
 
@@ -191,7 +199,13 @@ ${stepsText}
             </div>
 
             <div className={styles.actions}>
-              <button className="btn-primary" onClick={() => setResult(null)}>
+              <button className="btn-primary" onClick={() => {
+                setResult(null);
+                setDescription('');
+                setModule('');
+                setExpected('');
+                setActual('');
+              }}>
                 Analyze Another Defect
               </button>
             </div>

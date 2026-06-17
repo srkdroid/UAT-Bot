@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const extension = fileName.split('.').pop()?.toLowerCase();
     
     let content = '';
-    let pageCount = undefined;
+    let pageCount: number | undefined = undefined;
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -57,8 +57,9 @@ export async function POST(request: Request) {
       fileType: extension as 'txt' | 'pdf' | 'docx'
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Upload API Error:', error);
-    return NextResponse.json({ error: error.message || 'Error processing file' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Error processing file';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

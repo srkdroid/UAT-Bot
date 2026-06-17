@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import styles from './ContextUploader.module.css';
@@ -27,6 +29,12 @@ export function ContextUploader() {
       const MAX_SIZE = 5 * 1024 * 1024;
       if (file.size > MAX_SIZE) {
         throw new Error('File size exceeds 5MB limit');
+      }
+
+      // Check for duplicate filename
+      const isDuplicate = uploadedContext.some(doc => doc.fileName === file.name);
+      if (isDuplicate) {
+        throw new Error(`"${file.name}" has already been uploaded.`);
       }
 
       const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
@@ -71,9 +79,8 @@ export function ContextUploader() {
     e.preventDefault();
     setIsDragging(false);
     
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processFile(e.dataTransfer.files[0]);
-    }
+    const files = Array.from(e.dataTransfer.files);
+    files.forEach(file => processFile(file));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

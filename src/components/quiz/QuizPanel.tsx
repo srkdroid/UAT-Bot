@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { D365_MODULES } from '@/lib/docsContent';
@@ -38,11 +40,11 @@ export function QuizPanel() {
     } catch (err: any) {
       console.error(err);
       setError('Could not generate quiz. Please try again.');
-      setQuizState({ ...quizState, isLoading: false });
+      setQuizState(prev => ({ ...prev, isLoading: false }));
     }
   };
 
-  const handleAnswer = (optionKey: string) => {
+  const handleAnswer = (optionKey: 'A' | 'B' | 'C' | 'D') => {
     setQuizState(prev => ({
       ...prev,
       answers: { ...prev.answers, [prev.currentIndex]: optionKey }
@@ -122,7 +124,7 @@ export function QuizPanel() {
           <div className={styles.historySection}>
             <h3>Previous Results</h3>
             <div className={styles.historyList}>
-              {quizHistory.map(result => (
+              {[...quizHistory].reverse().map(result => (
                 <div key={result.id} className={styles.historyItem}>
                   <div>
                     <strong>{result.module}</strong>
@@ -177,6 +179,17 @@ export function QuizPanel() {
             </div>
           </div>
 
+          {quizHistory.length > 0 && quizHistory[quizHistory.length - 1].knowledgeGaps.length > 0 && (
+            <div className={styles.knowledgeGaps}>
+              <h3>Knowledge Gaps to Review</h3>
+              <ul>
+                {quizHistory[quizHistory.length - 1].knowledgeGaps.map((gap, i) => (
+                  <li key={i}>{gap}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className={styles.actions}>
             <button className="btn-primary" onClick={() => handleGenerate(D365_MODULES.find(m => m.name === quizState.selectedModule)?.id || '')}>
               Retry {quizState.selectedModule}
@@ -198,7 +211,10 @@ export function QuizPanel() {
   return (
     <div className={styles.container}>
       <div className={styles.progress}>
-        Question {quizState.currentIndex + 1} of {quizState.questions.length}
+        <span>Question {quizState.currentIndex + 1} of {quizState.questions.length}</span>
+        <div className={styles.progressBar}>
+          <div className={styles.progressFill} style={{ width: `${((quizState.currentIndex + 1) / quizState.questions.length) * 100}%` }} />
+        </div>
       </div>
 
       <div className={`glass-card ${styles.questionCard}`}>

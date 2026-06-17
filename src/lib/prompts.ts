@@ -76,6 +76,7 @@ export function buildCoachSystemPrompt(context: string[]): string {
 
 export function buildQuizPrompt(module: string, context: string[]): string {
   let prompt = QUIZ_SYSTEM_PROMPT;
+  prompt += `\n\nMODULE TO TEST: ${module}`;
   if (context.length > 0) {
     prompt += '\n\n<project_context>\n' + context.join('\n\n---\n\n') + '\n</project_context>';
   }

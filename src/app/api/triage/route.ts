@@ -45,7 +45,18 @@ export async function POST(request: Request) {
       jsonResult = JSON.parse(cleaned);
     }
 
-    return new Response(JSON.stringify(jsonResult), {
+    // Validate required fields
+    const validatedResult = {
+      classification: jsonResult.classification || 'Training Issue',
+      confidence: ['High', 'Medium', 'Low'].includes(jsonResult.confidence) ? jsonResult.confidence : 'Medium',
+      reasoning: jsonResult.reasoning || 'Unable to determine reasoning.',
+      recommended_action: jsonResult.recommended_action || 'Review with your project team.',
+      suggested_next_steps: Array.isArray(jsonResult.suggested_next_steps) 
+        ? jsonResult.suggested_next_steps 
+        : [jsonResult.suggested_next_steps || 'Consult your project team.'],
+    };
+
+    return new Response(JSON.stringify(validatedResult), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
